@@ -129,8 +129,15 @@ namespace AgregatorServer
             }
 
             var jURL = JsonConvert.DeserializeObject<ImageHits>(res);
-            searchResult = jURL.hits.First().largeImageURL;
-            return searchResult;
+            if (jURL.hits.Count() == 0)
+            {
+                return "404";
+            }
+            else
+            {
+                searchResult = jURL.hits.First().largeImageURL;
+                return searchResult;
+            }
         }
 
 
@@ -169,7 +176,11 @@ namespace AgregatorServer
                 JTokens[i].ToList().ForEach(ob => ResultDescr.Add(ob.ToString()));
             }
             searchResult = ResultDescr.First();
-            return searchResult;
+            if (searchResult== "")
+            {
+                return "404";
+            }
+            else return searchResult;
         }
 
     }
