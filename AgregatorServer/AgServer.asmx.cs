@@ -3,6 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Services;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Runtime.Serialization.Json;
+using System.IO;
+using System.Net;
+using Newtonsoft.Json;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace AgregatorServer
 {
@@ -19,21 +33,40 @@ namespace AgregatorServer
     {
 
         [WebMethod]
-        public string HelloWorld()
+        public DishObject SearchDish(string dishName)
         {
-            return "Привет всем!";
-        }
-        [WebMethod]
-        public string TestMethod( string name)
-        {
-            return name;
+            //Связь с БД
+            DataAccessLayer newConnectDB = new DataAccessLayer();            
+            DishObject dishDef = new DishObject();
+            //Добовляем в таблицу запросов, наш запрос !!!!!!!!надо вместо 1-го параметра поставить Id текущего пользователя
+            newConnectDB.AddUserReqInDB(1, dishName, DateTime.Now.ToString("yyyy-MM-dd"));
+            //Осуществляем поиск блюда в кэше
+            dishDef = newConnectDB.CheckAndRetCacheDB(dishName);
+            if(dishDef.DishName == null)
+            {
+                string imageURL = SearchImage(dishName);
+                string dishDescr = SearchDescr(dishName);
+                dishDef.DishName = dishName;
+                dishDef.DishDescr = dishDescr;
+                dishDef.ImageURL = imageURL;
+                newConnectDB.AddCacheDataInDB(dishName, dishDescr, imageURL);
+                return dishDef;
+            }
+            else return dishDef;  
         }
 
+        //Если listOfUserReq.Count()==0 - ничего по заданному периоду не нашли 
         [WebMethod]
-        public double Convert (double Celsius)
+        public List<UserRequest> GetListOfUsersReq(string startDate, string endDate)
         {
-            return ((Celsius * 9) / 5) + 32;
+            //Связь с БД
+            DataAccessLayer newConnectDB = new DataAccessLayer();
+            List<UserRequest> listOfUserReq = new List<UserRequest>();
+            listOfUserReq = newConnectDB.RetUserRequestDB(startDate, endDate);
+            return listOfUserReq;
         }
+
+
         /*метод GetUser срабатывает в ответ на вход пользователя
          * в систему после регистрации или просто вход*/
         [WebMethod]
@@ -68,29 +101,75 @@ namespace AgregatorServer
             return outpay;
          
         }
-        public struct UserRequestLog //структура для выгрузки данных из базы по пользователю
+
+
+        //Поиск урла картинки
+        public string SearchImage(string dishName)
         {
-            public int userId;
-            public string userRequest;
-            public DateTime date;
+            string searchResult;
+            string userToken = "10681699-62b7c4a834f7831db6adff1a6";
+            string photoTag = dishName;
+            string targetUrl
+                = "https://pixabay.com/api/?key=" + userToken + "&q=" + photoTag + "&image_type=photo&lang=ru&page=1&per_page=3";
+            //Коннектимся с pixabay
+            WebClient myWebClient = new WebClient();
+            ServicePointManager.Expect100Continue = false;
+            byte[] antwort = null;
+            string res;
+            try
+            {
+                antwort = myWebClient.DownloadData(targetUrl);
+                res = System.Text.Encoding.ASCII.GetString(antwort);
+
+            }
+            catch (Exception ex)
+            {
+                searchResult = "400";
+                return searchResult;
+            }
+
+            var jURL = JsonConvert.DeserializeObject<ImageHits>(res);
+            searchResult = jURL.hits.First().largeImageURL;
+            return searchResult;
         }
 
-        [WebMethod]
-        public List<UserRequestLog> ListOfUserRequest(string begin, string end)
+
+        //Поиск описания блюда
+        public string SearchDescr(string dishName)
         {
-           UserRequestLog log1 = new UserRequestLog();
-            log1.userId = 1;
-            log1.userRequest = "ризотто";
-            log1.date = DateTime.Now;
-            UserRequestLog log2 = new UserRequestLog();
-            log2.userId = 1;
-            log2.userRequest = "ризотто";
-            log2.date = DateTime.Now;
-            List<UserRequestLog> listLogo = new List<UserRequestLog>
+            string searchResult;
+            string photoTag = dishName;
+            string targetUrl = "https://ru.wikipedia.org/w/api.php?action=opensearch&search=" + photoTag + "&prop=info&format=json&inprop=url";
+            //Коннектимся с Wiki
+            WebClient myWebClient = new WebClient();
+            ServicePointManager.Expect100Continue = false;
+            byte[] antwort = null;
+            string res;
+            try
             {
-                log1, log2
-            };
-            return listLogo;
+                antwort = myWebClient.DownloadData(targetUrl);
+                res = System.Text.Encoding.GetEncoding("utf-8").GetString(antwort);
+            }
+            catch (Exception ex)
+            {
+                searchResult = "400";
+                return searchResult;
+            }
+
+            JArray ja = JsonConvert.DeserializeObject<JArray>(res);
+            List<string[]> strings = new List<string[]>();
+            List<JToken> JTokens = new List<JToken>()
+                {
+                    ja[ja.Count() - 2]
+                };
+
+            List<string> ResultDescr = new List<string>();
+            for (int i = 0; i < JTokens.Count(); i++)
+            {
+                JTokens[i].ToList().ForEach(ob => ResultDescr.Add(ob.ToString()));
+            }
+            searchResult = ResultDescr.First();
+            return searchResult;
         }
 
     }
