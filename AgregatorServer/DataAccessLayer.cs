@@ -62,7 +62,7 @@ namespace AgregatorServer
             return statusResult;
 
         }
-        public int AddDishesOrderInDB(int userId, int basketId, int dishCoast, string deliveryAddr, string dateRequest)
+        public int AddDishesOrderInDB(int userId, int basketId, double dishCoast, string deliveryAddr, string dateRequest)
         {
             int statusResult;
 

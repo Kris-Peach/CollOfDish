@@ -31,15 +31,25 @@ namespace AgregatorServer
     // [System.Web.Script.Services.ScriptService]
     public class AgServer : System.Web.Services.WebService
     {
-
+        List<User> registUserList = new List<User>();
+        List<User> activeUserList = new List<User>();
+        DataAccessLayer newConnectDB = new DataAccessLayer();
         [WebMethod]
-        public DishObject SearchDish(string dishName)
+        public DishObject SearchDish(string userSessionId, string dishName)
         {
-            //Связь с БД
-            DataAccessLayer newConnectDB = new DataAccessLayer();            
+            int currUserId=0;
+            //Связь с БД         
             DishObject dishDef = new DishObject();
-            //Добовляем в таблицу запросов, наш запрос !!!!!!!!надо вместо 1-го параметра поставить Id текущего пользователя
-            newConnectDB.AddUserReqInDB(1, dishName, DateTime.Now.ToString("yyyy-MM-dd"));
+            //Ищем пользователя, который сделал запрос
+            foreach (User user in activeUserList)
+            {
+                if (user.UserSessionId == userSessionId)
+                {
+                    currUserId = user.UserId;
+                }
+            }
+            //Добовляем в таблицу запросов, наш запрос 
+            newConnectDB.AddUserReqInDB(currUserId, dishName, DateTime.Now.ToString("yyyy-MM-dd"));
             //Осуществляем поиск блюда в кэше
             dishDef = newConnectDB.CheckAndRetCacheDB(dishName);
             if(dishDef.DishName == null)
@@ -60,46 +70,94 @@ namespace AgregatorServer
         public List<UserRequest> GetListOfUsersReq(string startDate, string endDate)
         {
             //Связь с БД
-            DataAccessLayer newConnectDB = new DataAccessLayer();
             List<UserRequest> listOfUserReq = new List<UserRequest>();
             listOfUserReq = newConnectDB.RetUserRequestDB(startDate, endDate);
             return listOfUserReq;
         }
 
 
-        /*метод GetUser срабатывает в ответ на вход пользователя
-         * в систему после регистрации или просто вход*/
+        //Регистрация нового пользователя
         [WebMethod]
-        public int GetUser(int id,string firstname, string secondname )
+        public int UserRegistration(string userSessionId, string userFirstName, string userSecondName, 
+            string userPassword, string userLogin)
         {
-            int code = 1; // режим ответа на вход пользователя в систему
-            return code; // 200 - вход разрешен, 403 - вход запрещен
-        }
-        public class Payment
-        {
-            public int userId;
-            public double cost;
-            public int getUserId() { return userId; }
-            public double getCost() { return cost; }
-            public void setUserId(int id) { userId = id; }
-            public void setCost(double inCost) { cost = inCost; }
-            public Payment (int id, double Incost)
+            //Связь с Ксюшей
+            int result = 1;
+
+            // Если результат != 400, значит нам вернули id нового пользователя и мы создаем нового пользователя
+            if(result != 400)
             {
-                userId = id;
-                cost = Incost;
+                User newUser = new User(result, userSessionId, userFirstName, userSecondName, userLogin);
+                registUserList.Add(newUser);
+                return 200;
             }
-            public Payment() { }
+            else return result;
         }
-        [WebMethod]//need changes
-        public Payment outPayment ()
+
+        [WebMethod]
+        public int UserEnter(string userSessionId, string userLogin, string userPassword)
         {
-            int id = 1;
-            double cost = 10.0;
-            Payment outpay = new Payment();
-            outpay.userId = id;
-            outpay.cost = cost;
-            return outpay;
-         
+            //Связь с Ксюшей
+            int result = 200;
+
+            // Если результат != 400, значит пользователь с такими данными сущ-т=> можем входить в систему
+            if (result != 400)
+            {
+                //Добавляем в список пользователя, который вошел в сеть
+                foreach (User user in registUserList)
+                {
+                    if(user.UserLogin==userLogin)
+                    {
+                        activeUserList.Add(user);
+                    }
+                }
+                return 200;
+            }
+            else return result;
+        }
+
+        //Поиск корзин
+        [WebMethod]
+        public List<Cart> СartsSearch(string userSessionId, string dishName, int numberOfCarts)
+        {
+            //Связь с Настей
+            List<Cart> listOfCarts = new List<Cart>();
+
+            return listOfCarts;
+        }
+
+
+        //Создаем заказ
+        [WebMethod]
+        public string CreateOrder(string userSessionId, int cartId, Address deliveryAddress,
+                                                                        double orderCoast, CreditCard cresitCard)
+        {
+            int currUserId = 0;
+            string deliveryAddr;
+            //Отправляем Ксюше запрос, на проверку платежеспособности клиента
+            int result = 200;
+            if (result != 400)
+            {
+                //Ищем пользователя, который сделал заказ
+                foreach (User user in activeUserList)
+                {
+                    if (user.UserSessionId == userSessionId)
+                    {
+                        currUserId = user.UserId;
+                    }
+                }
+                deliveryAddr = deliveryAddress.City+" " + deliveryAddress.Street + " " + deliveryAddress.House + " "+deliveryAddress.Apartment;
+                //Добавляем заказ в БД
+
+                //Информируем Креню, что заказ был успешно сделан
+
+                //Отправляем запрос мальчикам на доставку
+
+                Order dateAndTypeOrder = new Order();
+                newConnectDB.AddDishesOrderInDB(currUserId, cartId, orderCoast, deliveryAddr, dateAndTypeOrder.DeliveryDate);
+                return dateAndTypeOrder.DeliveryDate;
+            }
+            else return "400";
         }
 
 

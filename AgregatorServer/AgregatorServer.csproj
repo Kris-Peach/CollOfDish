@@ -67,14 +67,19 @@
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Address.cs" />
     <Compile Include="AgServer.asmx.cs">
       <DependentUpon>AgServer.asmx</DependentUpon>
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Cart.cs" />
+    <Compile Include="CreditCard.cs" />
     <Compile Include="DataAccessLayer.cs" />
     <Compile Include="DataImageSerialization.cs" />
     <Compile Include="DishObject.cs" />
     <Compile Include="ImageHits.cs" />
+    <Compile Include="Order.cs" />
+    <Compile Include="Product.cs" />
     <Compile Include="Service1.svc.cs">
       <DependentUpon>Service1.svc</DependentUpon>
     </Compile>
