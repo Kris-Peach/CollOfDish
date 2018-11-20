@@ -22,5 +22,9 @@ namespace AgregatorServer
             UserLogin = userLogin;
 
         }
+        public User()
+        {
+            
+        }
     }
 }

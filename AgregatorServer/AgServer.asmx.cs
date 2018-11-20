@@ -18,6 +18,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using AgregatorServer.ServiceReference1;
+using AgregatorServer.ServiceReference2;
+using AgregatorServer.ServiceReference3;
 
 namespace AgregatorServer
 {
@@ -35,9 +37,10 @@ namespace AgregatorServer
 
         List<User> registUserList = new List<User>();
         List<User> activeUserList = new List<User>();
+        List<OrderObj> tempOrderList = new List<OrderObj>();
         DataAccessLayer newConnectDB = new DataAccessLayer();
-              
-
+        DeliveryServiceClient deliveryClient = new DeliveryServiceClient("BasicHttpBinding_IDeliveryService");
+        AgregatorServer.ServiceReference3.LibraryClient orderConfirmClient = new AgregatorServer.ServiceReference3.LibraryClient();
 
         [WebMethod]
         public DishObject SearchDish(string userSessionId, string dishName)
@@ -138,7 +141,7 @@ namespace AgregatorServer
             return null;
         }
 
-
+    
         //Поиск корзин
         [WebMethod]
         public List<Cart> СartsSearch(string userSessionId, string dishName, int numberOfCarts)
@@ -152,13 +155,17 @@ namespace AgregatorServer
 
         //Создаем заказ
         [WebMethod]
-        public string CreateOrder(string userSessionId, int cartId, Address deliveryAddress,
-                                                                        double orderCoast, CreditCard cresitCard)
+     //   public string CreateOrder(string userSessionId, int cartId, Address deliveryAddress,
+       //                                                                 double orderCoast, CreditCard cresitCard)
+        public string CreateOrder(string userSessionId, int cartId,  double orderCoast)
         {
             int currUserId = 0;
             string currUserFirstName = null;
             string deliveryAddr;
+            deliveryAddr = "СПб, ул Лахтинская, дом 6, кв. 3";
             //Отправляем Ксюше запрос, на проверку платежеспособности клиента
+
+
             int result = 200;
             if (result != 400)
             {
@@ -171,15 +178,34 @@ namespace AgregatorServer
                         currUserFirstName = user.UserFirstName;
                     }
                 }
-                deliveryAddr = deliveryAddress.City+" " + deliveryAddress.Street + " " + deliveryAddress.House + " "+deliveryAddress.Apartment;
-                //Добавляем заказ в БД
+
+                int orderNum = newConnectDB.GetMaxOrderNum() + 1;
+                orderNum += tempOrderList.Count();
+                OrderObj newOrder = new OrderObj();
+                newOrder.OrderId = orderNum;
+                newOrder.UserId = currUserId;
+                newOrder.CartId = cartId;
+                newOrder.UserFirstName = currUserFirstName;
+                newOrder.DelivAddress = deliveryAddr;
+                tempOrderList.Add(newOrder);
 
                 //Информируем Креню, что заказ был успешно сделан
+                descision newClientDescision = new descision();
+                newClientDescision.cart_id = newOrder.CartId.ToString();
+                newClientDescision.order_id = newOrder.OrderId.ToString();
+               // orderConfirmClient.validation(newClientDescision);
 
+                // deliveryAddr = deliveryAddress.City+" " + deliveryAddress.Street + " " + deliveryAddress.House + " "+deliveryAddress.Apartment;
+
+                
                 //Отправляем запрос мальчикам на доставку
-
-                //deliveryClient.addDelivery(1, currUserId, currUserFirstName, deliveryAddr);
+                DeliveryInfo newDeliveryInf = new DeliveryInfo();
+                newDeliveryInf = deliveryClient.addDelivery(88, currUserId, currUserFirstName, deliveryAddr);
+                
                 Order dateAndTypeOrder = new Order();
+                dateAndTypeOrder.DeliveryType = newDeliveryInf.Delivery_type;
+                dateAndTypeOrder.DeliveryDate = newDeliveryInf.Time.ToString();
+                //Добавляем заказ в БД
                 newConnectDB.AddDishesOrderInDB(currUserId, cartId, orderCoast, deliveryAddr, dateAndTypeOrder.DeliveryDate);
                 return dateAndTypeOrder.DeliveryDate;
             }

@@ -8,9 +8,9 @@ namespace AgregatorServer
     public class CreditCard
     {
         public string CardNumber { get; set; }
-        public double CardholdersName { get; set; }
-        public double ValidityMM { get; set; }
-        public double ValidityYY { get; set; }
-        public double CVC { get; set; }
+        public string CardholdersName { get; set; }
+        public int ValidityMM { get; set; }
+        public int ValidityYY { get; set; }
+        public int CVC { get; set; }
     }
 }

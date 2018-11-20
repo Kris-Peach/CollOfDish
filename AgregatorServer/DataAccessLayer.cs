@@ -1,4 +1,4 @@
-﻿using System;
+﻿ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -247,8 +247,35 @@ namespace AgregatorServer
             return listOfUserReq;
         }
 
-    }
 
+        public int GetMaxOrderNum ()
+        {
+            string sqlExpression = "sp_GetLastOrderNum";
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                SqlCommand command = new SqlCommand(sqlExpression, connection);
+                command.CommandType = System.Data.CommandType.StoredProcedure;
+
+                SqlParameter maxOrderNum = new SqlParameter
+                {
+                    ParameterName = "@request_Id",
+                    SqlDbType = System.Data.SqlDbType.Int // тип параметра
+                };
+                // указываем, что параметр будет выходным
+                maxOrderNum.Direction = System.Data.ParameterDirection.Output;
+                command.Parameters.Add(maxOrderNum);
+                command.ExecuteNonQuery();
+                var res = command.Parameters["@request_Id"].Value;
+                int result = Convert.ToInt32(command.Parameters["@request_Id"].Value);
+                
+                return result;
+            }
+        }
+    }
 }
+
+
 
 

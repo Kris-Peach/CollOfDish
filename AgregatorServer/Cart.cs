@@ -9,8 +9,8 @@ namespace AgregatorServer
     {
         public int CartId { get; set; }
         public List<Product> ProductList { get; set; }
-        string Date { get; set; }
-        double TotalPrice { get; set; }
+        public string Date { get; set; }
+        public double TotalPrice { get; set; }
 
     }
 }
