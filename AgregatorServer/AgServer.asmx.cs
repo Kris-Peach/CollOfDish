@@ -17,6 +17,7 @@ using System.Net;
 using Newtonsoft.Json;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using AgregatorServer.ServiceReference1;
 
 namespace AgregatorServer
 {
@@ -30,10 +31,14 @@ namespace AgregatorServer
     // Чтобы разрешить вызывать веб-службу из скрипта с помощью ASP.NET AJAX, раскомментируйте следующую строку. 
     // [System.Web.Script.Services.ScriptService]
     public class AgServer : System.Web.Services.WebService
-    {
+    {      
+
         List<User> registUserList = new List<User>();
         List<User> activeUserList = new List<User>();
         DataAccessLayer newConnectDB = new DataAccessLayer();
+              
+
+
         [WebMethod]
         public DishObject SearchDish(string userSessionId, string dishName)
         {
@@ -94,6 +99,8 @@ namespace AgregatorServer
             else return result;
         }
 
+
+        //   Проверка корректности ввода данных пользователя при входе в систему 
         [WebMethod]
         public int UserEnter(string userSessionId, string userLogin, string userPassword)
         {
@@ -116,6 +123,22 @@ namespace AgregatorServer
             else return result;
         }
 
+        // Возвращает информ пользователя по его  userSessionId 
+        [WebMethod]
+        public User GetUserInfo(string userSessionId)
+        {
+            foreach (User user in activeUserList)
+            {
+                if (user.UserSessionId == userSessionId)
+                {
+                    return user;
+
+                }
+            }
+            return null;
+        }
+
+
         //Поиск корзин
         [WebMethod]
         public List<Cart> СartsSearch(string userSessionId, string dishName, int numberOfCarts)
@@ -133,6 +156,7 @@ namespace AgregatorServer
                                                                         double orderCoast, CreditCard cresitCard)
         {
             int currUserId = 0;
+            string currUserFirstName = null;
             string deliveryAddr;
             //Отправляем Ксюше запрос, на проверку платежеспособности клиента
             int result = 200;
@@ -144,6 +168,7 @@ namespace AgregatorServer
                     if (user.UserSessionId == userSessionId)
                     {
                         currUserId = user.UserId;
+                        currUserFirstName = user.UserFirstName;
                     }
                 }
                 deliveryAddr = deliveryAddress.City+" " + deliveryAddress.Street + " " + deliveryAddress.House + " "+deliveryAddress.Apartment;
@@ -153,6 +178,7 @@ namespace AgregatorServer
 
                 //Отправляем запрос мальчикам на доставку
 
+                //deliveryClient.addDelivery(1, currUserId, currUserFirstName, deliveryAddr);
                 Order dateAndTypeOrder = new Order();
                 newConnectDB.AddDishesOrderInDB(currUserId, cartId, orderCoast, deliveryAddr, dateAndTypeOrder.DeliveryDate);
                 return dateAndTypeOrder.DeliveryDate;

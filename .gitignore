@@ -260,3 +260,10 @@ paket-files/
 __pycache__/
 *.pyc
 *.sln
+/AgregatorServer/Connected Services/ServiceReference2/configuration.svcinfo
+*.svcinfo
+*.wsdl
+*.cs
+*.svcmap
+*.datasource
+*.xsd
