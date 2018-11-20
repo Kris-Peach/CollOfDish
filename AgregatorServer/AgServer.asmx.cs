@@ -208,14 +208,14 @@ namespace AgregatorServer
             }
             catch (Exception ex)
             {
-                searchResult = "400";
+                searchResult = null;
                 return searchResult;
             }
 
             var jURL = JsonConvert.DeserializeObject<ImageHits>(res);
             if (jURL.hits.Count() == 0)
             {
-                return "404";
+                return null;
             }
             else
             {
@@ -262,7 +262,7 @@ namespace AgregatorServer
             searchResult = ResultDescr.First();
             if (searchResult== "")
             {
-                return "404";
+                return "Определение не найдено";
             }
             else return searchResult;
         }
