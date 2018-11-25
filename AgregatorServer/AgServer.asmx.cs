@@ -41,7 +41,7 @@ namespace AgregatorServer
         DataAccessLayer newConnectDB = new DataAccessLayer();
         DeliveryServiceClient deliveryClient = new DeliveryServiceClient("BasicHttpBinding_IDeliveryService");
         AgregatorServer.ServiceReference3.LibraryClient orderConfirmClient = new AgregatorServer.ServiceReference3.LibraryClient();
-
+        AgregatorServer.ServiceReference2.LibraryClient orderCartsClient = new AgregatorServer.ServiceReference2.LibraryClient();
         [WebMethod]
         public DishObject SearchDish(string userSessionId, string dishName)
         {
@@ -80,6 +80,7 @@ namespace AgregatorServer
             //Связь с БД
             List<UserRequest> listOfUserReq = new List<UserRequest>();
             listOfUserReq = newConnectDB.RetUserRequestDB(startDate, endDate);
+            //orderConfirmClient.
             return listOfUserReq;
         }
 
@@ -121,6 +122,8 @@ namespace AgregatorServer
                         activeUserList.Add(user);
                     }
                 }
+
+
                 return 200;
             }
             else return result;
@@ -138,37 +141,27 @@ namespace AgregatorServer
 
                 }
             }
-            return null;
-        }
 
-    
-        //Поиск корзин
-        [WebMethod]
-        public List<Cart> СartsSearch(string userSessionId, string dishName, int numberOfCarts)
-        {
-            //Связь с Настей
-            List<Cart> listOfCarts = new List<Cart>();
-
-            return listOfCarts;
+            User newUser = new User();
+            newUser.UserId = 1;
+            newUser.UserFirstName = "Lera";
+            newUser.UserSecondName = "Ia ustal";
+            newUser.UserLogin = "vse besit";
+            newUser.UserSessionId = userSessionId;
+            return newUser;
         }
 
 
-        //Создаем заказ
+
+        // Возвращает новый номер заказа по  userSessionId 
         [WebMethod]
-     //   public string CreateOrder(string userSessionId, int cartId, Address deliveryAddress,
-       //                                                                 double orderCoast, CreditCard cresitCard)
-        public string CreateOrder(string userSessionId, int cartId,  double orderCoast)
+        public int generateOrderId(string userSessionId)
         {
+            int newOrderId = 0;
             int currUserId = 0;
             string currUserFirstName = null;
-            string deliveryAddr;
-            deliveryAddr = "СПб, ул Лахтинская, дом 6, кв. 3";
-            //Отправляем Ксюше запрос, на проверку платежеспособности клиента
 
-
-            int result = 200;
-            if (result != 400)
-            {
+       
                 //Ищем пользователя, который сделал заказ
                 foreach (User user in activeUserList)
                 {
@@ -178,36 +171,119 @@ namespace AgregatorServer
                         currUserFirstName = user.UserFirstName;
                     }
                 }
-
+                
                 int orderNum = newConnectDB.GetMaxOrderNum() + 1;
                 orderNum += tempOrderList.Count();
                 OrderObj newOrder = new OrderObj();
                 newOrder.OrderId = orderNum;
                 newOrder.UserId = currUserId;
-                newOrder.CartId = cartId;
+                newOrder.CartId = 0 ;
                 newOrder.UserFirstName = currUserFirstName;
-                newOrder.DelivAddress = deliveryAddr;
-                tempOrderList.Add(newOrder);
+                newOrder.DelivAddress = null;
+                tempOrderList.Add(newOrder); 
+                return newOrderId;
+        }
+
+
+        //Поиск корзин
+        [WebMethod]
+        public List<Cart> СartsSearch(string userSessionId, string dishName, int numDish , int orderId)
+        {
+            //Связь с Настей
+            List<Cart> testListOfCarts = new List<Cart>();
+            AgregatorServer.ServiceReference2.order newOrderN = new AgregatorServer.ServiceReference2.order();
+            newOrderN.order_id = orderId.ToString();
+            newOrderN.number_of_servings = numDish.ToString();
+            newOrderN.dish_name = dishName;
+            cart_list newListOfCarts = new cart_list();
+            //получаем долгожданный список корзин
+            newListOfCarts = orderCartsClient.bookYear(newOrderN);
+
+            //Добовляем в свою структуру данных
+            List<Cart> listOfCarts = new List<Cart>();
+            Cart cartNew = new Cart();         
+
+            foreach (cart newGetCart in newListOfCarts.carts )
+            {
+                cartNew.ProductList = new List<Product>();
+                cartNew.CartId = Convert.ToInt32(newGetCart.cart_id);
+                cartNew.Date = newGetCart.date.ToString("dd/MM/yyyy HH:mm:ss");
+                cartNew.TotalPrice = Convert.ToInt32(newGetCart.total_price);
+                foreach(product newProduct in newGetCart.product_list)
+                {
+                    Product productNew = new Product();
+                    productNew.Name = newProduct.name;
+                    productNew.Price = Convert.ToInt32(newProduct.price);
+                    productNew.Weight = Convert.ToInt32(newProduct.weigth);
+                    cartNew.ProductList.Add(productNew);
+                }
+                listOfCarts.Add(cartNew);
+            }
+
+            return listOfCarts;
+        }
+
+
+
+        //Создаем заказ
+        [WebMethod]
+         public string CreateOrder(string userSessionId, int cartId, Address deliveryAddress,
+                                                                       double orderCoast, CreditCard cresitCard, int orderId )
+       //public string CreateOrder(string userSessionId, int cartId,  double orderCoast, int orderId , string deliveryAddr)
+        {
+            int currUserId = 0;
+            string currUserFirstName = null;
+            string deliveryAddr;
+           // string deliveryAddr;
+
+            //Ищем пользователя, который сделал заказ
+                foreach (User user in activeUserList)
+                {
+                    if (user.UserSessionId == userSessionId)
+                    {
+                        currUserId = user.UserId;
+                        currUserFirstName = user.UserFirstName;
+                    }
+                }
+            //Отправляем Ксюше запрос, на проверку платежеспособности клиента
+
+
+            
+            int result = 200;
+            if (result != 400)
+            {
+                 deliveryAddr = deliveryAddress.City + " " + deliveryAddress.Street + " " + deliveryAddress.House + " " + deliveryAddress.Apartment;
 
                 //Информируем Креню, что заказ был успешно сделан
                 descision newClientDescision = new descision();
-                newClientDescision.cart_id = newOrder.CartId.ToString();
-                newClientDescision.order_id = newOrder.OrderId.ToString();
-               // orderConfirmClient.validation(newClientDescision);
+                descision2 newClientDescision2 = new descision2();
+                newClientDescision.cart_id = cartId.ToString();
+                newClientDescision.order_id = orderId.ToString();
+                newClientDescision2 = orderConfirmClient.validation(newClientDescision);
 
-                // deliveryAddr = deliveryAddress.City+" " + deliveryAddress.Street + " " + deliveryAddress.House + " "+deliveryAddress.Apartment;
+                if (newClientDescision2.status == "OK")
+                   {
+                        //Отправляем запрос мальчикам на доставку
+                        DeliveryInfo newDeliveryInf = new DeliveryInfo();
+                        //newDeliveryInf = deliveryClient.addDelivery(88, 5, "lera", deliveryAddr);
+                        newDeliveryInf = deliveryClient.addDelivery(orderId, currUserId, currUserFirstName, deliveryAddr);
+                        Order dateAndTypeOrder = new Order();
+                        dateAndTypeOrder.DeliveryType = newDeliveryInf.Delivery_type;
+                        dateAndTypeOrder.DeliveryDate = newDeliveryInf.Time.ToString("dd/MM/yyyy HH:mm:ss");
+                        //Добавляем заказ в БД  
+                        newConnectDB.AddDishesOrderInDB(currUserId, cartId, orderCoast, deliveryAddr, dateAndTypeOrder.DeliveryDate);
+                        
+                        foreach (OrderObj searchOrder in tempOrderList)
+                        {
+                            if (searchOrder.OrderId == orderId)
+                            {
+                                tempOrderList.Remove(searchOrder);
+                            }
+                        }
 
-                
-                //Отправляем запрос мальчикам на доставку
-                DeliveryInfo newDeliveryInf = new DeliveryInfo();
-                newDeliveryInf = deliveryClient.addDelivery(88, currUserId, currUserFirstName, deliveryAddr);
-                
-                Order dateAndTypeOrder = new Order();
-                dateAndTypeOrder.DeliveryType = newDeliveryInf.Delivery_type;
-                dateAndTypeOrder.DeliveryDate = newDeliveryInf.Time.ToString();
-                //Добавляем заказ в БД
-                newConnectDB.AddDishesOrderInDB(currUserId, cartId, orderCoast, deliveryAddr, dateAndTypeOrder.DeliveryDate);
-                return dateAndTypeOrder.DeliveryDate;
+                        return dateAndTypeOrder.DeliveryDate;
+                    }
+                else return "400";
             }
             else return "400";
         }

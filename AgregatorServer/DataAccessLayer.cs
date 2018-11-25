@@ -9,7 +9,7 @@ namespace AgregatorServer
 {
     class DataAccessLayer
     {
-        string connectionString = @"Data Source= ЛЕРА-ПК\SQLEXPRESS;Initial Catalog=CollofDishes ;Integrated Security=True";
+        string connectionString = @"Server=tcp:collofdishesdbserver.database.windows.net,1433;Initial Catalog=CollofDishes;Persist Security Info=False;User ID=valerosha;Password=Server2018;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";
 
         /* результат взаимодействия с БД:
            200 - ок

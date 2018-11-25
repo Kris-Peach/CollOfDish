@@ -82,6 +82,9 @@
       <Generator>WCF Proxy Generator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
     </None>
+    <Content Include="Connected Services\ServiceReference2\AgregatorServer.ServiceReference2.cart_list.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </Content>
     <None Include="Connected Services\ServiceReference2\configuration91.svcinfo" />
     <None Include="Connected Services\ServiceReference2\configuration.svcinfo" />
     <None Include="Connected Services\ServiceReference2\Reference.svcmap">
@@ -91,9 +94,7 @@
     <Content Include="Connected Services\ServiceReference3\AgregatorServer.ServiceReference3.descision2.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </Content>
-    <Content Include="Connected Services\ServiceReference3\AgregatorServer.ServiceReference3.validationResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </Content>
+    <None Include="Connected Services\ServiceReference2\Library.wsdl" />
     <None Include="Connected Services\ServiceReference3\configuration91.svcinfo" />
     <None Include="Connected Services\ServiceReference3\configuration.svcinfo" />
     <None Include="Connected Services\ServiceReference3\Reference.svcmap">
@@ -101,7 +102,9 @@
       <LastGenOutput>Reference.cs</LastGenOutput>
     </None>
     <Content Include="Service1.svc" />
-    <Content Include="Web.config" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Address.cs" />
@@ -145,8 +148,8 @@
     <Folder Include="App_Data\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Connected Services\ServiceReference2\Library.wsdl" />
     <None Include="Connected Services\ServiceReference3\Library.wsdl" />
+    <None Include="Properties\PublishProfiles\AgregatorServer - Web Deploy.pubxml" />
     <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>

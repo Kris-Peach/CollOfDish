@@ -11,6 +11,5 @@ namespace AgregatorServer
         public List<Product> ProductList { get; set; }
         public string Date { get; set; }
         public double TotalPrice { get; set; }
-
     }
 }
