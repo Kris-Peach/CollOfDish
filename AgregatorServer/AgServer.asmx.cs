@@ -227,13 +227,13 @@ namespace AgregatorServer
 
         //Создаем заказ
         [WebMethod]
-         public string CreateOrder(string userSessionId, int cartId, Address deliveryAddress,
-                                                                       double orderCoast, CreditCard cresitCard, int orderId )
-       //public string CreateOrder(string userSessionId, int cartId,  double orderCoast, int orderId , string deliveryAddr)
+         //public string CreateOrder(string userSessionId, int cartId, Address deliveryAddress,
+         //                                                              double orderCoast, CreditCard creditCard, int orderId )
+       public string CreateOrder(string userSessionId, int cartId,  double orderCoast, int orderId , string deliveryAddr)
         {
             int currUserId = 0;
             string currUserFirstName = null;
-            string deliveryAddr;
+           // string deliveryAddr;
            // string deliveryAddr;
 
             //Ищем пользователя, который сделал заказ
@@ -252,7 +252,7 @@ namespace AgregatorServer
             int result = 200;
             if (result != 400)
             {
-                 deliveryAddr = deliveryAddress.City + " " + deliveryAddress.Street + " " + deliveryAddress.House + " " + deliveryAddress.Apartment;
+                // deliveryAddr = deliveryAddress.City + " " + deliveryAddress.Street + " " + deliveryAddress.House + " " + deliveryAddress.Apartment;
 
                 //Информируем Креню, что заказ был успешно сделан
                 descision newClientDescision = new descision();
@@ -267,22 +267,26 @@ namespace AgregatorServer
                         DeliveryInfo newDeliveryInf = new DeliveryInfo();
                         //newDeliveryInf = deliveryClient.addDelivery(88, 5, "lera", deliveryAddr);
                         newDeliveryInf = deliveryClient.addDelivery(orderId, currUserId, currUserFirstName, deliveryAddr);
-                        Order dateAndTypeOrder = new Order();
-                        dateAndTypeOrder.DeliveryType = newDeliveryInf.Delivery_type;
-                        dateAndTypeOrder.DeliveryDate = newDeliveryInf.Time.ToString("dd/MM/yyyy HH:mm:ss");
-                        //Добавляем заказ в БД  
-                        newConnectDB.AddDishesOrderInDB(currUserId, cartId, orderCoast, deliveryAddr, dateAndTypeOrder.DeliveryDate);
-                        
-                        foreach (OrderObj searchOrder in tempOrderList)
+                        if (newDeliveryInf.IsReady)
                         {
-                            if (searchOrder.OrderId == orderId)
-                            {
-                                tempOrderList.Remove(searchOrder);
-                            }
-                        }
+                            Order dateAndTypeOrder = new Order();
+                            dateAndTypeOrder.DeliveryType = newDeliveryInf.Delivery_type;
+                            dateAndTypeOrder.DeliveryDate = newDeliveryInf.Time.ToString("dd/MM/yyyy HH:mm:ss");
+                            //Добавляем заказ в БД  
+                            newConnectDB.AddDishesOrderInDB(currUserId, cartId, orderCoast, deliveryAddr, dateAndTypeOrder.DeliveryDate);
 
-                        return dateAndTypeOrder.DeliveryDate;
-                    }
+                            foreach (OrderObj searchOrder in tempOrderList)
+                            {
+                                if (searchOrder.OrderId == orderId)
+                                {
+                                    tempOrderList.Remove(searchOrder);
+                                }
+                            }
+
+                            return dateAndTypeOrder.DeliveryDate;
+                        }
+                    else return "400";
+                }
                 else return "400";
             }
             else return "400";
