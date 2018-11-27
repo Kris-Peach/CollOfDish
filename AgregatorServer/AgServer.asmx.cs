@@ -201,40 +201,48 @@ namespace AgregatorServer
 
             //Добовляем в свою структуру данных
             List<Cart> listOfCarts = new List<Cart>();
-            Cart cartNew = new Cart();         
 
-            foreach (cart newGetCart in newListOfCarts.carts )
+            //если корзин нет
+            if (newListOfCarts.carts.Count() == 0)
             {
-                cartNew.ProductList = new List<Product>();
-                cartNew.CartId = Convert.ToInt32(newGetCart.cart_id);
-                cartNew.Date = newGetCart.date.ToString("dd/MM/yyyy HH:mm:ss");
-                cartNew.TotalPrice = Convert.ToInt32(newGetCart.total_price);
-                foreach(product newProduct in newGetCart.product_list)
-                {
-                    Product productNew = new Product();
-                    productNew.Name = newProduct.name;
-                    productNew.Price = Convert.ToInt32(newProduct.price);
-                    productNew.Weight = Convert.ToInt32(newProduct.weigth);
-                    cartNew.ProductList.Add(productNew);
-                }
-                listOfCarts.Add(cartNew);
+                return null;
             }
+            else
+            {
+                foreach (cart newGetCart in newListOfCarts.carts)
+                {
+                    Cart cartNew = new Cart();
+                    cartNew.ProductList = new List<Product>();
+                    cartNew.CartId = Convert.ToInt32(newGetCart.cart_id);
 
-            return listOfCarts;
+                    cartNew.Date = newGetCart.date;
+                    cartNew.TotalPrice = Convert.ToInt32(newGetCart.total_price);
+                    foreach (product newProduct in newGetCart.product_list)
+                    {
+                        Product productNew = new Product();
+                        productNew.Name = newProduct.name;
+                        productNew.Price = Convert.ToInt32(newProduct.price);
+                        productNew.Weight = Convert.ToInt32(newProduct.weigth);
+                        cartNew.ProductList.Add(productNew);
+                    }
+                    listOfCarts.Add(cartNew);
+                }
+
+                return listOfCarts;
+            }
         }
 
 
 
         //Создаем заказ
         [WebMethod]
-         //public string CreateOrder(string userSessionId, int cartId, Address deliveryAddress,
-         //                                                              double orderCoast, CreditCard creditCard, int orderId )
-       public string CreateOrder(string userSessionId, int cartId,  double orderCoast, int orderId , string deliveryAddr)
+         public string CreateOrder(string userSessionId, int cartId, Address deliveryAddress,
+                                                                      double orderCoast, CreditCard creditCard, int orderId )
+      // public string CreateOrder(string userSessionId, int cartId,  double orderCoast, int orderId , string deliveryAddr)
         {
             int currUserId = 0;
             string currUserFirstName = null;
-           // string deliveryAddr;
-           // string deliveryAddr;
+            string deliveryAddr;
 
             //Ищем пользователя, который сделал заказ
                 foreach (User user in activeUserList)
@@ -252,7 +260,7 @@ namespace AgregatorServer
             int result = 200;
             if (result != 400)
             {
-                // deliveryAddr = deliveryAddress.City + " " + deliveryAddress.Street + " " + deliveryAddress.House + " " + deliveryAddress.Apartment;
+                 deliveryAddr = deliveryAddress.City + " " + deliveryAddress.Street + " " + deliveryAddress.House + " " + deliveryAddress.Apartment;
 
                 //Информируем Креню, что заказ был успешно сделан
                 descision newClientDescision = new descision();
@@ -365,12 +373,21 @@ namespace AgregatorServer
             {
                 JTokens[i].ToList().ForEach(ob => ResultDescr.Add(ob.ToString()));
             }
-            searchResult = ResultDescr.First();
-            if (searchResult== "")
+            if (ResultDescr.Count() == 0)
             {
                 return "Определение не найдено";
             }
-            else return searchResult;
+            else
+            {
+                searchResult = ResultDescr.First();
+                if (searchResult == "")
+                {
+                    return "Определение не найдено";
+                }
+                else return searchResult;
+
+            }
+
         }
 
     }
