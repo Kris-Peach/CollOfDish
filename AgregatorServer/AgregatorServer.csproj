@@ -87,6 +87,7 @@
     </Content>
     <None Include="Connected Services\ServiceReference2\configuration91.svcinfo" />
     <None Include="Connected Services\ServiceReference2\configuration.svcinfo" />
+    <None Include="Connected Services\ServiceReference2\Library1.wsdl" />
     <None Include="Connected Services\ServiceReference2\Reference.svcmap">
       <Generator>WCF Proxy Generator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
@@ -94,7 +95,6 @@
     <Content Include="Connected Services\ServiceReference3\AgregatorServer.ServiceReference3.descision2.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </Content>
-    <None Include="Connected Services\ServiceReference2\Library.wsdl" />
     <None Include="Connected Services\ServiceReference3\configuration91.svcinfo" />
     <None Include="Connected Services\ServiceReference3\configuration.svcinfo" />
     <None Include="Connected Services\ServiceReference3\Reference.svcmap">

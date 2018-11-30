@@ -68,7 +68,7 @@ namespace AgregatorServer
 
             try
             {
-                string sqlExpression = "sp_AddDishesOrder";
+                string sqlExpression = "sp_AddDishOrder";
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
                     connection.Open();
@@ -116,6 +116,7 @@ namespace AgregatorServer
 
             catch (Exception ex)
             {
+
 
                 statusResult = 400;
 

@@ -37,7 +37,6 @@ namespace AgregatorServer
 
         List<User> registUserList = new List<User>();
         List<User> activeUserList = new List<User>();
-        List<OrderObj> tempOrderList = new List<OrderObj>();
         DataAccessLayer newConnectDB = new DataAccessLayer();
         DeliveryServiceClient deliveryClient = new DeliveryServiceClient("BasicHttpBinding_IDeliveryService");
         AgregatorServer.ServiceReference3.LibraryClient orderConfirmClient = new AgregatorServer.ServiceReference3.LibraryClient();
@@ -155,58 +154,54 @@ namespace AgregatorServer
 
         // Возвращает новый номер заказа по  userSessionId 
         [WebMethod]
-        public int generateOrderId(string userSessionId)
+        public string generateOrderId(string userSessionId)
         {
-            int newOrderId = 0;
-            int currUserId = 0;
-            string currUserFirstName = null;
+          
+            string orderNum = null;
+            Random rnd = new Random();
+            //Получить случайное число (в диапазоне от 1 до 5)
+            int sizeOfOrderNum = rnd.Next(5, 7);
+            orderNum = RandomString(sizeOfOrderNum);
 
-       
-                //Ищем пользователя, который сделал заказ
-                foreach (User user in activeUserList)
-                {
-                    if (user.UserSessionId == userSessionId)
-                    {
-                        currUserId = user.UserId;
-                        currUserFirstName = user.UserFirstName;
-                    }
-                }
-                
-                int orderNum = newConnectDB.GetMaxOrderNum() + 1;
-                orderNum += tempOrderList.Count();
-                OrderObj newOrder = new OrderObj();
-                newOrder.OrderId = orderNum;
-                newOrder.UserId = currUserId;
-                newOrder.CartId = 0 ;
-                newOrder.UserFirstName = currUserFirstName;
-                newOrder.DelivAddress = null;
-                tempOrderList.Add(newOrder); 
-                return newOrderId;
+            return orderNum;
+    
         }
 
+        private Random _random = new Random(Environment.TickCount);
+        public string RandomString(int length)
+        {
+            string chars = "0123456789abcdefghijklmnopqrstuvwxyz";
+            StringBuilder builder = new StringBuilder(length);
+
+            for (int i = 0; i < length; ++i)
+                builder.Append(chars[_random.Next(chars.Length)]);
+
+            return builder.ToString();
+        }
 
         //Поиск корзин
         [WebMethod]
-        public List<Cart> СartsSearch(string userSessionId, string dishName, int numDish , int orderId)
+        public List<Cart> СartsSearch(string userSessionId, string dishName, int numDish , string orderId)
         {
             //Связь с Настей
             List<Cart> testListOfCarts = new List<Cart>();
             AgregatorServer.ServiceReference2.order newOrderN = new AgregatorServer.ServiceReference2.order();
-            newOrderN.order_id = orderId.ToString();
+            newOrderN.order_id = orderId;
             newOrderN.number_of_servings = numDish.ToString();
             newOrderN.dish_name = dishName;
             cart_list newListOfCarts = new cart_list();
             //получаем долгожданный список корзин
             newListOfCarts = orderCartsClient.bookYear(newOrderN);
-
+            int count = newListOfCarts.carts.Count<cart>();
             //Добовляем в свою структуру данных
             List<Cart> listOfCarts = new List<Cart>();
 
             //если корзин нет
-            if (newListOfCarts.carts.Count() == 0)
+            if (newListOfCarts.carts.Count<cart>() == 0)
             {
                 return null;
             }
+
             else
             {
                 foreach (cart newGetCart in newListOfCarts.carts)
@@ -237,7 +232,7 @@ namespace AgregatorServer
         //Создаем заказ
         [WebMethod]
          public string CreateOrder(string userSessionId, int cartId, Address deliveryAddress,
-                                                                      double orderCoast, CreditCard creditCard, int orderId )
+                                                                      double orderCoast, CreditCard creditCard, string orderId )
       // public string CreateOrder(string userSessionId, int cartId,  double orderCoast, int orderId , string deliveryAddr)
         {
             int currUserId = 0;
@@ -266,7 +261,7 @@ namespace AgregatorServer
                 descision newClientDescision = new descision();
                 descision2 newClientDescision2 = new descision2();
                 newClientDescision.cart_id = cartId.ToString();
-                newClientDescision.order_id = orderId.ToString();
+                newClientDescision.order_id = orderId;
                 newClientDescision2 = orderConfirmClient.validation(newClientDescision);
 
                 if (newClientDescision2.status == "OK")
@@ -279,17 +274,10 @@ namespace AgregatorServer
                         {
                             Order dateAndTypeOrder = new Order();
                             dateAndTypeOrder.DeliveryType = newDeliveryInf.Delivery_type;
-                            dateAndTypeOrder.DeliveryDate = newDeliveryInf.Time.ToString("dd/MM/yyyy HH:mm:ss");
+                            dateAndTypeOrder.DeliveryDate = newDeliveryInf.Time.ToString("dd/MM/yyyy");
                             //Добавляем заказ в БД  
                             newConnectDB.AddDishesOrderInDB(currUserId, cartId, orderCoast, deliveryAddr, dateAndTypeOrder.DeliveryDate);
 
-                            foreach (OrderObj searchOrder in tempOrderList)
-                            {
-                                if (searchOrder.OrderId == orderId)
-                                {
-                                    tempOrderList.Remove(searchOrder);
-                                }
-                            }
 
                             return dateAndTypeOrder.DeliveryDate;
                         }
@@ -392,3 +380,5 @@ namespace AgregatorServer
 
     }
 }
+
+
